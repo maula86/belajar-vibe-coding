@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { registerUser } from "../services/users-service";
+import { registerUser, loginUser } from "../services/users-service";
 
 export const usersRoute = new Elysia({ prefix: "/api/users" })
   .post("/", async ({ body, set }) => {
@@ -21,6 +21,28 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
   }, {
     body: t.Object({
       name: t.String(),
+      email: t.String(),
+      password: t.String(),
+    })
+  })
+  .post("/login", async ({ body, set }) => {
+    try {
+      const { email, password } = body;
+      const token = await loginUser(email, password);
+      return { data: token };
+    } catch (error: any) {
+      // Set status ke 401 Unauthorized jika email/password salah
+      set.status = 401;
+      if (error.message === "Email atau password salah") {
+        return { error: error.message };
+      }
+      
+      console.error(error);
+      set.status = 500;
+      return { error: "Internal Server Error" };
+    }
+  }, {
+    body: t.Object({
       email: t.String(),
       password: t.String(),
     })

@@ -72,3 +72,19 @@ export const getCurrentUser = async (token: string) => {
 
   return userWithoutPassword;
 };
+
+export const logoutUser = async (token: string) => {
+  // Cari session berdasarkan token
+  const session = await db.query.sessions.findFirst({
+    where: eq(sessions.token, token),
+  });
+
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  // Hapus session dari database
+  await db.delete(sessions).where(eq(sessions.token, token));
+
+  return "OK";
+};
